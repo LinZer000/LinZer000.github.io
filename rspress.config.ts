@@ -3,6 +3,9 @@ import { defineConfig } from 'rspress/config';
 
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
+  route: {
+    cleanUrls: true,
+  },
   title: 'InfiniteDancing',
   icon: '/infinitedancing-icon.png',
   logoText: 'InfiniteDancing',
