@@ -3,6 +3,18 @@
     "en": "Index",
     "zh": "目录"
   },
+  "computer": {
+    "en": "Computer",
+    "zh": "计算机"
+  },
+  "game-development": {
+    "en": "Game Development",
+    "zh": "游戏开发"
+  },
+  "using-python": {
+    "en": "Using Python",
+    "zh": "使用Python"
+  },
   "math": {
     "en": "Math",
     "zh": "数学"

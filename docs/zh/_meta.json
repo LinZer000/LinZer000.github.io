@@ -3,5 +3,10 @@
     "text": "math",
     "link": "/math/",
     "activeMatch": "/math/"
+  },
+  {
+    "text": "computer",
+    "link": "/computer/",
+    "activeMatch": "/computer/"
   }
 ]
