@@ -1,4 +1,12 @@
 {
+  "index": {
+    "en": "Index",
+    "zh": "目录"
+  },
+  "math": {
+    "en": "Math",
+    "zh": "数学"
+  },
   "test": {
     "en": "Test",
     "zh": "测试"

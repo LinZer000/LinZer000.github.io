@@ -1,0 +1,12 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "index"
+  },
+  {
+    "type": "dir",
+    "name": "linear-algebra",
+    "label": "线性代数"
+  }
+]

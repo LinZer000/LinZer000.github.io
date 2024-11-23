@@ -37,6 +37,11 @@ export default defineConfig({
         searchPlaceholderText: 'Search Anywhere',
         searchNoResultsText: 'No results found',
         searchSuggestedQueryText: 'Please change the keyword and try again',
+        overview: {
+          filterNameText: 'Filter',
+          filterPlaceholderText: 'Enter keyword',
+          filterNoResultText: 'No matching content found',
+        },
       },
       {
         lang: 'zh',
@@ -48,6 +53,11 @@ export default defineConfig({
         searchPlaceholderText: '搜索全站',
         searchNoResultsText: '找不到结果',
         searchSuggestedQueryText: '请更换关键词重试',
+        overview: {
+          filterNameText: '搜索',
+          filterPlaceholderText: '输入关键词',
+          filterNoResultText: '没有找到结果',
+        },
       },
     ],
     socialLinks: [
