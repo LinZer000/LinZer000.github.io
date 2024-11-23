@@ -23,6 +23,10 @@ export default defineConfig({
   ],
   themeConfig: {
     lastUpdated: true,
+    footer: {
+      message:
+          '<p>2024-2025 <strong>InfiniteDancing</strong>. Powered by <a href="https://rspress.dev/"><i>Rspress</i></a>.</p>',
+    },
     locales: [
       {
         lang: 'en',
