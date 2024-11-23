@@ -5,10 +5,7 @@ export default defineConfig({
   root: path.join(__dirname, 'docs'),
   title: 'InfiniteDancing',
   icon: '/infinitedancing-icon.png',
-  logo: {
-    light: '/infinitedancing-light-logo.png',
-    dark: '/infinitedancing-dark-logo.png',
-  },
+  logoText: 'InfiniteDancing',
   markdown: {
     showLineNumbers: true,
     defaultWrapCode: true,
