@@ -1,0 +1,320 @@
+---
+pageType: doc
+
+title: "Mazes"
+lang: "en"
+head:
+  - - meta
+    - property: og:title
+      content: The Rock
+  - - meta
+    - property: og:url
+      content: https://www.imdb.com/title/tt0117500/
+  - - meta
+    - property: og:image
+      content: https://ia.media-imdb.com/images/rock.jpg
+---
+
+# {frontmatter.title}
+
+
+
+## Mazes
+
+-  Mazes are very important for many games
+  - Pac-man, Zelda, Doom
+- A "Procedurally generated" world
+
+### Mazes in Myth: Labyrinth
+
+Theseus in the Minotaur's Labyrinth, Use his thread to find the way back
+
+### Classification
+
+- Perfect: One path between TWO cells, no loops
+  - Cell: the smallest geographical element of the maze
+- Unicursal: No branches, just a single path
+- Braided: Has Loops, no dead-ends
+- Weave: passages go over and under each other (not quite 3d) 类似纪念碑谷
+
+### Features
+
+- Dimensionality: 2d 2.5d 3d
+- Shapes: Non-rectangular, Toroidal
+- Tiles: Cells can be non-square
+
+### Metrics
+
+- Passage length
+- Dead ends
+- Crossroads
+- Bias
+- Difficulty
+- Others???
+
+### Term(inology)
+
+- a grid of cells
+  - each is one space along a maze path
+- cells have Neighbors
+- Linked Cells ==> Part of Path
+- Unlinked Cells ==> Walls
+  - Direct travel is prohibited between cells that unlinked
+- All neighboring cells will be either linked or unlinked
+
+## Maze Creation Algorithms
+
+- Random maze
+- Classification
+  - Carving: Start with a grid of unlinked cells and then choose pairs to be linked
+  - Wall adders: Start with empty space and add walls and add walls to it
+
+### Binary Tree Algorithm
+
+- Carving
+- North or East neighbor
+  - the East column are all linked to their North neighbor
+  - the North row are all linked to their East neighbor
+  - North East cell is not linked North or East
+- For each cell:
+  - A list of all North and East neighbots
+  - if list != empty
+    - Pick a random neighbor
+    - Carve it
+- Easy to parallelize, put it in a data center 方便并行执行，如果你需要生成一个巨大的迷宫的话
+
+#### Bias
+
+- ![gm-dev-bin-tree-maze-bias](https://r2.infinitedancing.top/gm-dev-bin-tree-maze-bias.png)
+- Top-row and Right-column are always clear
+- Many North-East long way
+
+- Exit Choosing
+  - A Perfect maze
+    - Put the entry/ exit wherever you want
+
+#### Coding Time
+
+- Data structures
+  - Cell: Tracking neighbors and links
+  - Grid: container for all cells
+  - Markup: Tracking of some form of annotations/data for each cell (color, num, text, etc.)
+- Binary Tree Algorithm
+  - Iterate through all cells
+  - no North or East neighbor do nothing
+  - if not a_cell.est: a_cell.link(a_cell.north)
+  - else r = randomly.choice([a_cell.north, a_cell.east])
+  - a_cell.link(r)
+
+#### Judgement
+
+- A very simple algorithm
+- Each cell can be handled in parallel
+- Distinct look
+  - Took row and Right column are connected
+- Bias for diagonal (对角线的) flow
+
+### Sidewinder Algorithm
+
+- Carvings
+
+#### Row at a time
+
+![gm-dev-sidewinder-maze](https://r2.infinitedancing.top/gm-dev-sidewinder-maze.png)
+
+- Top row: link all
+- Other rows:
+  - collect adjacent cells into "runs"
+    - Add leftmost cell to "run_list"
+    - Randomly decide to add the next cell to the run_list
+      - Or end the run
+      - Always end the run when there is no cell to the East
+
+- When ending the run, link all cells in the run together
+  - Randomly choose one cell to link to North neighbor
+
+#### Bias
+
+![gm-dev-sidewinder-maze-bias](https://r2.infinitedancing.top/gm-dev-sidewinder-maze-bias.png)
+
+- Top row is always clear
+- Horizontal  passage bias
+
+#### Judgement
+
+- ez, simple, efficient
+- Each **row** can be handled in parallel
+- Change the odds of the coin flip ==> The length of the horizontal passages
+
+### Aldous-Broder Random Walk
+
+- Random Walk Algorithm
+
+#### Random Walk
+
+1. Start in a random cell
+2. Link to a random neighbor if that neighbor hasn't been visisted yet
+3. Move to that neighbor
+4. If there are unvisited cells anywhere, go back to step2
+
+#### Bias
+
+No Bias (First No Bias Maze Al)
+
+![gm-dev-ab-maze-bias](https://r2.infinitedancing.top/gm-dev-ab-maze-bias.png)
+
+What does bias mean??? 
+
+#### Judgement
+
+- No bias
+- Look really good
+- BUT:
+  - Long time to randomly walk into the last cell
+  - 768cells ==> 15232steps
+
+### Wilson's Algorithm
+
+- Also
+  - Random walk
+  - No bias
+  - Inefficient
+
+#### Random Walk
+
+1. Choose some Cells as Visited cells
+2. Start with Unvisited cells
+3. Random Walk
+4. Until meet a visited cell, end the walk![gm-dev-maze-wilson-walk](https://r2.infinitedancing.top/gm-dev-maze-wilson-walk.png)
+5. Mark all cells on the path as visited![gm-dev-wilson-walk-maze-marked](https://r2.infinitedancing.top/gm-dev-wilson-walk-maze-marked.png)
+6. Repeat steps 2-4 until all cells are visited
+
+#### "Loop-erased" is what?
+
+![gm-dev-wilson-walk-maze-loop-earsed](https://r2.infinitedancing.top/gm-dev-wilson-walk-maze-loop-earsed.png)
+
+#### Judgement
+
+- No bias
+  - can't tell difference from A-B between Wilson's
+- Low Performance
+  - 768 cells ==> 4739 choices ==> 1288 removed loops
+- In the beginning ==> hard to find a visited cell
+  - In the end, it can find a visited cell quickly
+  - It is always used with other algorithms
+
+### Recursion Backtracker
+
+#### "Recursion"
+
+- A thing in terms of itself
+- For memory's heap size restriction, we don't write it recursively
+
+#### Trans a "List" into a "Stack"
+
+- Stack: A last-in, first-out data structure
+- Trans "List" into "Stack": Always operate on the end of a list
+  - Use "append/push"
+  - Use "Pop"
+
+``````python
+# A python stack
+stack = []
+
+# APPEND/PUSH
+stack.append("Mazes")
+stack.append("are")
+stack.append("amzing!")
+
+# POP
+print(stack.pop()) # amzing!
+print(stack.pop()) # are
+print(stack.pop()) # Mazes
+``````
+
+#### Random Walk
+
+1. Choose a cell to start
+2. Random Walk into a unvisited neighbor
+3. Link to and move to the neighbor
+4. Repeat 2-3, until there is no unvisited neighbor, back up along the path until you do have one, and continue 2-3.
+
+![gm-dev-rb-maze-1](https://r2.infinitedancing.top/gm-dev-rb-maze-1.png)
+
+![gm-dev-rb-maze-2](https://r2.infinitedancing.top/gm-dev-rb-maze-2.png)
+
+![gm-dev-rb-maze-3](https://r2.infinitedancing.top/gm-dev-rb-maze-3.png)
+
+![gm-dev-rb-maze-4](https://r2.infinitedancing.top/gm-dev-rb-maze-4.png)
+
+#### Judgement
+
+- Has Bias: Long twist paths with few dead ends
+- Not memory efficient
+  - Need to keep the stack, which may contain every cell in the whole maze
+  - Stack overflow
+- Stack can be implement by
+  - Implicit: a function
+  - Explicit (Better for a large mazes): a list
+
+## Maze Solution Algorithms
+
+- !: Solution Algorithms can't see the entire maze just like us.
+
+### Classification
+
+- Wall Follower: can solve any maze if the entrance and exit are on the edge
+- Dead End Filler: works for perfect mazes
+- Recursive Backtracker: won't always find the shortest path
+- Trémaux Algorithm: Can be used by a human
+
+### Dijkstra's Algorithm
+
+- A very famous graph algorithm, named after a very famous Dutch computer scientist
+- A simplified version for mazes (a "breadth-first" search)
+
+#### Goal: Least-cost path
+
+- The cost (成本)
+  - 1 if linked
+  - infinite if unlinked
+- In general, it works even when the cost is different
+
+#### "Flood"
+
+1. Mark the root cell, which costs 0
+2. Create **Frontier**: A collection (set, list, ...) to hold cells (including the root).
+   - "edge" the cells whose least-cost path you already know
+3. Repeat 3, until the frontier is empty
+   - Find The cell with the smallest value in the frontier `c`
+   - Remove `c` from the frontier
+   - Find all **linked** neighbors of `c` which are not already marked
+     - Mark them with 1 + `c`'s value
+     - Add them to the frontier
+
+![gm-dev-maze-dijk](https://r2.infinitedancing.top/gm-dev-maze-dijk.png)
+
+这和扫雷的生成算法有点像啊
+
+#### Finding the shortest path
+
+From the exit we set, repeatedly walk into the smallest cell until to the root (the entrance or any cell you set). 6543210
+
+#### The Longest path
+
+##### Finding
+
+- Do Dijkstra's twice
+  - From A
+  - From B
+  - A + B ==> C, which has the highest markup
+- A ==> C ==> B
+
+##### Usage
+
+- Evaluate the difficulty, as a metric (度量) for how hard the maze is
+- Place entrance/exit for a longer journey
+
+## References
+
+- *Algorithm for Game Design* by **William Nace** 
