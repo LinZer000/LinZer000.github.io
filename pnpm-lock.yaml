@@ -11,6 +11,9 @@ importers:
       rspress:
         specifier: ^1.37.1
         version: 1.37.2(webpack@5.96.1)
+      rspress-plugin-sitemap:
+        specifier: ^1.1.1
+        version: 1.1.1
     devDependencies:
       '@biomejs/biome':
         specifier: ^1.9.3
@@ -1303,6 +1306,9 @@ packages:
 
   rspack-plugin-virtual-module@0.1.13:
     resolution: {integrity: sha512-VC0HiVHH6dtGfTgfpbDgVTt6LlYv+uAg9CWGWAR5lBx9FbKPEZeGz7iRUUP8vMymx+PGI8ps0u4a25dne0rtuQ==}
+
+  rspress-plugin-sitemap@1.1.1:
+    resolution: {integrity: sha512-usb6zWoi5wFFmBeA9HKR6BhsnnsItudMBarc54GYpuRL55SWkLxyWyMijv14mUI04FI7J7lEmea08uZE0bVKxg==}
 
   rspress@1.37.2:
     resolution: {integrity: sha512-JigB9G4AvIyfkwYMP6+S/v0DzA5HpbAPx9wqkQmdkLJdPuV6BPESETbNZea7bVIJXhnUf+16LiHvJE8CKWmD7w==}
@@ -3338,6 +3344,8 @@ snapshots:
   rspack-plugin-virtual-module@0.1.13:
     dependencies:
       fs-extra: 11.2.0
+
+  rspress-plugin-sitemap@1.1.1: {}
 
   rspress@1.37.2(webpack@5.96.1):
     dependencies:

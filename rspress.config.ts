@@ -1,11 +1,19 @@
 import * as path from 'node:path';
 import { defineConfig } from 'rspress/config';
+import sitemap from "rspress-plugin-sitemap";
 
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
   route: {
     cleanUrls: true,
   },
+  plugins: [
+    sitemap({
+      domain: "https://blog.infinitedancing.top",
+      defaultChangeFreq: "daily",
+      defaultPriority: "0.5",
+    }),
+  ],
   title: 'InfiniteDancing',
   icon: '/infinitedancing-icon.png',
   logoText: 'InfiniteDancing',
