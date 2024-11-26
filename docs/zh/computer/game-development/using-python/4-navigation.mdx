@@ -1,0 +1,393 @@
+---
+pageType: doc
+
+title: "Navigation"
+head:
+  - - meta
+    - property: og:locale
+      content: en_US
+---
+
+# {frontmatter.title}
+
+## Navigation
+
+- The process of finding a path through the world (likely related to geography)
+- Control
+  - "State Machine"
+  - AI navigation
+
+### The World == A Graph
+
+- The world: consists of locations / ways to get between them
+
+- A Graph = Set(V) + Set(E)
+  - Vertices: Locations 
+    - Points, Nodes, Rooms, Towns, Planets
+    - Annotate Vertex with info about the place
+  - Edges: A way connecting two vertices
+    - Hallways, tunnels, roads, hyperspace links
+    - Annotate Edge with info about the connection (like travel costs)
+
+- Mazes are Graphs
+
+  ![gm-dv-py-nav-maze-graph](https://r2.infinitedancing.top/gm-dv-py-nav-maze-graph.png)
+
+- Today's Algorithms work on any graph (even it's not a tiled worlds, mazes)
+  - Many Games use irregular convex polygons: Renowned Explorers, Civilization Series
+
+- Aside: Game Sizes
+  - How much real space should each vertex represent
+  - [Grids in Games: Scale and Shape](http://www.zarkonnen.com/grids_in_games)
+
+- Aside: Line Drawing
+  - Bresenham's Algorithm: A fast, classic (1962) algorithm
+  - Linear interpolation(LERP): Easier to understand
+  - Orthogonal steps: Modification to either of above, fix "light leak" issue
+
+### What is Navigation?
+
+- Find a path from the starting vertex (V<sub>start</sub>) to the ending vertex (V<sub>end</sub>)
+- Path: Set of edges (E<sub>n</sub>...), where n belongs to natural numbers
+- Sum of (E<sub>n</sub>.cost) is minimized
+
+## Classic Graph Search
+
+### One source, one destination (OO)
+
+- Greedy Best First Search
+- A*
+
+### One source, all destinations (OA)
+
+- Breadth First Search: unweighted edges
+- Dijkstra's Algorithm: weighted edges, cost > 0
+- Bellman-Ford: weighted edges, cost can be negative
+
+### All sources, all destinations (AA)
+
+- Floyd-Warshall Algorithm
+- Johnson's Algorithm
+  - A mixture of Dijkstra's and Bellman-Ford
+
+## Breadth first search (OA)
+
+- Flood fill using a frontier
+- Continue until the frontier is empty
+  - Pick the first location from the frontier
+  - Mark it as "visited"
+  - Add unvisited neighbors to the frontier
+
+``````python
+frontier = [ start ]
+visited = {}
+visited[start] = True
+
+while not frontier.empty():
+	current = frontier.pop(0)
+	for neighbor in current.neighbors():
+		if not visited[neighbor]:
+			frontier.append(neighbor)
+            visited[neighbor] = True
+``````
+
+![gm-dev-py-nav-breadth-1](https://r2.infinitedancing.top/gm-dev-py-nav-breadth-1.png)
+
+- BFS aims to discover if you can reach some destination cell
+
+- Test is easy -- Just look at the visited dictionary
+
+  ``````python
+  def can_reaach(some_cell):
+  	return some_cell in visited
+  ``````
+
+## Pathfinding with BFS (OA)
+
+- To get the path, we need to save a bit more data
+
+  - Usually, we want the shortest path
+
+- Modification:
+
+  ```python {10}
+  frontier = [ start ]
+  came_from = {}
+  came_from[start] = None
+  
+  while not frontier.empty():
+      current = frontier.pop(0)
+      for neighbor in current.neighbors():
+          if neighbor not in came_from:
+              frontier.append(neighbor)
+              came_from[neighbor] = current # 注意，这里不是路径本身，而是我们寻路需要的数据
+  ```
+
+  ```python title="get_path"
+  def get_path(start, destination, came_from):
+      current = destination
+      path = []
+      
+      while current != start:
+          path.insert(0, current)
+          current = came_from[current]
+          
+      path.insert(0, start) #optional
+      return path
+  ```
+
+- Technicality: A path is defined as a sequence of edges in a graph
+
+  - Our path is a sequence of vertices
+  - **Equally usable**
+
+- The `came_from` dict can be used to find a path from any cell, not just the target
+
+- This is a **flow field**, especially useful for tower defense games
+
+  ![gm-dev-py-nav-breadth-2](https://r2.infinitedancing.top/gm-dev-py-nav-breadth-2.png)
+
+## Early Exit (OO)
+
+  ![gm-dev-py-nav-early-exit-1](https://r2.infinitedancing.top/gm-dev-py-nav-early-exit-1.png)
+
+```python {1-2,9-11}
+target = some_cell
+found_target = False
+frontier = [ start ]
+came_from = {}
+came_from[start] = None
+
+while not frontier.empty():
+    current = frontier.pop(0)
+    if current == target:
+        found_target = True 
+        # Lets you know whether the loop stopped was caused by a founded target or not
+        break
+    for neighbor in current.neighbors():
+        if neighbor not in came_from:
+            frontier.append(neighbor)
+            came_from[neighbor] = current
+```
+
+## Obstacles
+
+- Goal: Ensure obstacles never get put into the frontier
+
+- Pure graph: obstacles are represented by a lack of edge between two vertices
+
+- Tiles: Don't regard obstacles as neighbors
+
+  ![gm-dev-py-nav-obs-1](https://r2.infinitedancing.top/gm-dev-py-nav-obs-1.png)
+
+```python {10}
+obstacles = [ ] #list of cells that are walls/stuff
+frontier = [ start ]
+came_from = {}
+came_from[start] = None
+
+while not frontier.empty():
+    current = frontier.pop(0)
+    for neighbor in current.neighbors():
+        if neighbor not in came_from and
+           neighbor not in obstacles:
+            frontier.append(neighbor)
+            came_from[neighbor] = current
+```
+
+## Dijkstra's (OA)
+
+- Edges have costs
+- Cost > 0
+
+### Idea
+
+- Mark each vertex with the lowest cost to get there
+- Put neighbors into the frontier with additional cost of the edge
+- There may be multiple paths to a particular vertex (which means it will be in the frontier multiple times)
+- Take out the lowest-cost vertex from the vertex
+  - This means there can never be a lower cost path discovered to that vertex in the future
+
+### Diagram
+
+![gm-dev-py-nav-dij-1](https://r2.infinitedancing.top/gm-dev-py-nav-dij-1.png)
+
+![gm-dev-py-nav-dij-2](https://r2.infinitedancing.top/gm-dev-py-nav-dij-2.png)
+
+![dm-dev-gm-nav-dij-2](https://r2.infinitedancing.top/dm-dev-gm-nav-dij-2.png)
+
+### Implementation
+
+- This algorithm relies on an efficient finding method for the lowest cost of all the cells in the frontier
+- **Priority Queue** (also called a **min-heap**)
+  - Uses a list, but managed as a priority queue
+
+```python
+import heapq
+frontier = [ ]
+heapq.heappush(frontier, (0, start, None))
+    #tuple of distance, cell, came from cell
+came_from = {start : None} #Completed knowledge
+
+while not frontier.empty():
+    cost, current, from = heapq.heappop(frontier)
+    if current in came_from:
+        continue
+    came_from[current] = from
+    
+    #early exit code could be here
+    
+    for neighbor in current.neighbors():
+        if neighbor not in came_from:
+            new_cost = cost + neighbor.cost
+            heapq.heappush(frontier,
+                           (new_cost, neighbor, current))
+```
+
+## Greedy best first search (OO)
+
+### Heuristic Function
+
+- Heuristic is a "rule of thumb (经验法则)" or a loosely defined guideline ==> imperfect
+
+- ```python
+  def heuristic(ax, ay, bx, by):
+      # Manhattan distance on a square grid
+      return abs(ax - bx) + abs(ay - by)
+  ```
+
+- Manhattan distance make sense for a grid of squares ➙ other situations, it might not
+
+### Implementation
+
+```python
+import heapq
+frontier = [ ] #tuple of h_dist, cell, came_from
+heapq.heappush(frontier, (0, start, None))
+came_from = {}
+
+while not frontier.empty():
+    _, current, from = heapq.heappop(frontier)
+    if current in came_from:
+    continue
+    came_from[current] = from
+    
+    #early exit here
+    
+    for neighbor in current.neighbors():
+        if neighbor not in came_from:
+            distance = heuristic(goal.x, goal.y,
+                                neighbor.x, neighbor.y)
+            heapq.heappush(frontier,
+                            (distance, neighbor, current))
+```
+
+### Diagram and Judgement
+
+![gm-dev-py-nav-greddy-1](https://r2.infinitedancing.top/gm-dev-py-nav-greddy-1.png)
+
+![gm-dev-py-nav-greddy-2](https://r2.infinitedancing.top/gm-dev-py-nav-greddy-2.png)
+
+## A* (OO)
+
+- A combination of Dijkstra's and Greedy Best First
+- Developed for robotics at SRI in 1962
+- A best-of-both-worlds (两全其美) algorithm
+
+### Implementation
+
+```python
+import heapq
+frontier = [ ] #tuple of priority, cell, Dijkstra cost, came_from
+heapq.heappush(frontier, (0, start, 0, None))
+came_from = {}
+
+while not frontier.empty():
+    priority, current, d_cost, from = heapq.heappop(frontier)
+    if current in came_from:
+        continue
+    came_from[current] = from
+    
+    #early exit here
+    
+    for neighbor in current.neighbors():
+        if neighbor not in came_from:
+            cost = d_cost + neighbor.cost
+            priority = cost + heuristic(goal.x, goal.y,
+                                        neighbor.x, neighbor.y)
+            heapq.heappush(frontier,
+                            (priority, neighbor, d_cost, current))
+
+```
+
+### Comments
+
+- If GBFS would have found the right path, A* will explore exactly the same area
+- But, if GBFS ➙ longer path, then A* is restrained by Dijkstra distance and keeps to the right path
+- Dijkstra's algorithm is **simply A* with a constant** heuristic value
+- A* uses the heuristic to re-order the search so it finds the goal sooner
+
+### Diagram
+
+![gm-dev-py-nav-Astar-1](https://r2.infinitedancing.top/gm-dev-py-nav-Astar-1.png)
+
+## NavMesh (OO)
+
+- Comes from robotics research
+
+### Convex Polygons
+
+- A polygon where any line segment connecting two points on the interior or boundaries ...
+- ... contains only points on the interior or boundaries
+
+![gm-dev-py-nav-convex-polygon](https://r2.infinitedancing.top/gm-dev-py-nav-convex-polygon.png)
+
+- Features:
+  - Easy to navigate between any two points
+  - Just go in a straight line
+  - Guarantees you will remain within the polygon
+
+### Navmesh
+
+- A collection of convex polygons that define all freely-traversable areas in your game
+- All obstacles exist outside of the navmehs
+- All polygons are connected by sides where traversal is allowed
+
+![gm-dev-py-nav-convex-polygon-1](https://r2.infinitedancing.top/gm-dev-py-nav-convex-polygon-1.png)
+
+- Navigation in the mesh
+  - Target in the same polygon (RULE #1)
+    - Go in a straight line
+  - Target not in the same polygon
+    - The connection of polygons from a graph (Use A* to determine the path)
+    - Then use RULE #1
+
+- Added Benefits
+  - Each polygon must be 2D
+  - But, the collection of polygons doesn't have to be
+    - Exploit to model 3D objects
+  - ![gm-dev-py-nav-convex-polygon-2](https://r2.infinitedancing.top/gm-dev-py-nav-convex-polygon-2.png)
+  - Image Credit: Unity
+
+## Funnel Algorithm (OO)
+
+- Improve the reality of the resulting path of Navmesh algorithm
+
+- [Game Path Planning](https://jceipek.com/Olin-Coding-Tutorials/pathing.html)
+
+  ![gm-dev-py-nav-funnel](https://r2.infinitedancing.top/gm-dev-py-nav-funnel.png)
+
+### Idea
+
+- Start at A (not the vertex)
+- Consider the first **Portal** (two edges of the common line segment between polygons)
+- Create a "**Funnel**" with the apex (A), left portal end, right portal end
+- Consider the second Portal
+- Move the left point of the funnel to the left edge of this second portal
+  - Widen the funnel ==> IGNORE
+  - We are looking for a straight line to travel from the apex
+- Repeat with the right of the funnel
+- If the update would cross the sides of the funnel (left-over-right or right-over-left)
+  - Move the apex to the last point on the side of the funnel and start over
+  - Keep track of where the apex has been, as that will be your path
+- 总结为：先画一个**漏斗**，**交替**向前行走，**变宽**就要撤走，**换位**就要记录
